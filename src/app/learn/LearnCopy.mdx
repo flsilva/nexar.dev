@@ -1,0 +1,748 @@
+import { ImageWrapper } from "./ImageWrapper";
+import { InfoBox } from "./InfoBox";
+
+### Table of Contents
+
+- [Introduction](#introduction)
+- [What is Nexar?](#what-is-nexar)
+- [Why Nexar?](#why-nexar)
+- [OpenTask](#opentask)
+- [Naming conventions](#naming-conventions)
+- [Test suite](#test-suite)
+- [Starting a new Next.js App Router app](#starting-a-new-nextjs-app-router-app)
+- [_`src/`_ folder structure](#src-folder-structure)
+- [Nexar is a modular architecture](#nexar-is-a-modular-architecture)
+  - [Modules should reflect business features](#modules-should-reflect-business-features)
+- [_`src/app/`_ folder structure](#srcapp-folder-structure)
+  - [_`marketing`_ routing module](#marketing-routing-module)
+  - [_`auth`_ routing module](#auth-routing-module)
+  - [_`app`_ routing module](#app-routing-module)
+  - [_`onboarding`_ routing module](#onboarding-routing-module)
+  - [_`projects`_ routing module](#projects-routing-module)
+  - [_`tasks`_ routing module](#tasks-routing-module)
+  - [_`today`_ routing module](#today-routing-module)
+  - [_`settings/account`_ routing module](#settingsaccount-routing-module)
+  - [_`main-nav`_ routing module](#main-nav-routing-module)
+- [src/features/ folder structure](#srcfeatures-folder-structure)
+- [Nexar is a layered architecture](#nexar-is-a-layered-architecture)
+- [Nexar's three main layers](#nexars-three-main-layers)
+  - [Domain layer](#domain-layer)
+  - [Data Access layer](#data-access-layer)
+  - [Presentation layer](#presentation-layer)
+- [Other layers](#other-layers)
+  - [Navigation layer](#navigation-layer)
+  - [Infrastructure layer](#infrastructure-layer)
+- [Business feature modules](#business-feature-modules)
+  - [_`shared`_ business feature module](#shared-business-feature-module)
+  - [_`marketing`_ business feature module](#marketing-business-feature-module)
+  - [_`auth`_ business feature module](#auth-business-feature-module)
+  - [_`app`_ business feature module](#app-business-feature-module)
+  - [_`app/shared`_ business feature module](#appshared-business-feature-module)
+  - [_`projects`_ business feature module](#projects-business-feature-module)
+  - [_`tasks`_ business feature module](#tasks-business-feature-module)
+  - [_`today`_ business feature module](#today-business-feature-module)
+  - [_`settings/account`_ business feature module](#settingsaccount-business-feature-module)
+  - [_`users`_ business feature module](#users-business-feature-module)
+- [Conclusion](#conclusion)
+- [About versioning the architecture](#about-versioning-the-architecture)
+
+### Introduction
+
+You're reading [Nexar beta version](/learn/#about-versioning-the-architecture).
+
+The reader is assumed to have some experience with the [Next.js App Router](https://nextjs.org/docs/app).
+
+For more information on the concepts I built this architecture upon, please read my short article on [What is software architecture?](https://flsilva.com/blog/what-is-software-architecture/)
+
+The source code of this website is public and [hosted on GitHub](https://github.com/flsilva/nexar.dev).
+
+This content is licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
+
+### What is Nexar?
+
+Nexar is a [modular](https://flsilva.com/blog/what-is-software-architecture/#modules-and-modular-architectures) and [layered](https://flsilva.com/blog/what-is-software-architecture/#layers-and-layered-architectures) application architecture specially designed for building monolithic full-stack applications with the new Next.js App Router, even though it might be adapted and used for similar stacks like [Remix](https://remix.run/).
+
+Monolith applications are an excellent option for new projects because they're faster to build, deploy, and manage as a single unit. And we can scale them for [millions of users](https://vercel.com/pricing).
+
+But the codebase of a monolith application doesn't have to be a big ball of mud. We can still have a modular and layered codebase and harvest [the benefits of software architecture](https://flsilva.com/blog/what-is-software-architecture/#why-software-architecture-is-important). And that's what Nexar is, a way to architecture the codebase of your monolith Next.js App Router apps.
+
+It is inspired by industry best practices, including those from [Domain-Driven Design](https://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215/) and [Patterns of Enterprise Application Architecture](https://www.amazon.com/Patterns-Enterprise-Application-Architecture-Martin/dp/0321127420/) books. However, it's not an implementation of any particular architecture or pattern.
+
+I designed it to be straightforward, minimal, and pragmatic while offering the benefits of application architectures.
+
+Nexar is created by [Flavio Silva](https://flsilva.com), a full-stack software engineer with 20 years of experience building web applications.
+
+### Why Nexar?
+
+<InfoBox>
+  A well-defined architecture helps developers understand the system and their
+  role in building it. It promotes effective communication, collaboration, and
+  alignment with business goals across different teams while enforcing clear
+  conventions.
+</InfoBox>
+
+There are dozens of ways to organize an application, but every time we start a new one, we face the same problem on how to structure it. How should we break down the logic, components, and modules? Should we have layers?
+
+That adds overhead from the beginning, taking critical time from the engineering team. And a mistaken initial decision is a costly one.
+
+Nexar is another modular and layered application architecture. I'm sure many developers build apps using a similar architecture. I've been building React applications using similar architectures since 2017.
+
+Nonetheless, agreeing on a well-documented architecture that fits your use case can dramatically speed up application development time, especially for small teams.
+
+Nexar is designed to be simple and minimal, arranging the inherent complexity your app will have regardless of using it.
+
+However, it's no silver bullet. If you think it might fit your use case, try it; it's built on solid architectural foundations. You might change it as you like, too; you don't have to follow everything as described here. Adapt it to your needs. And please [share your thoughts](https://github.com/flsilva/nexar.dev/discussions); let's evolve it together.
+
+### OpenTask
+
+Designing an application architecture solely in our minds is a recipe for disaster. We need to design it as we build apps. That's the only way to ensure they are good. And so I did.
+
+[OpenTask](https://opentask.app) is a free and [open-source](https://github.com/flsilva/opentask) task management app created as part of a Next.js App Router case study (a link will be added soon), and it currently implements Nexar beta as the codebase in the feb-2024 branch (a link will be added soon).
+
+Having an open-source application as a reference implementation of Nexar is fantastic. Anyone can investigate its codebase to see how a fully functional and responsive application implements Nexar in its tiny details.
+
+And since we need to talk about an application when explaining an application architecture, what better app to talk about than OpenTask?
+
+So, I'll use the entire OpenTask's codebase as a reference implementation for Nexar. This way, after reading this documentation, you'll learn what Nexar is and how a real-world application implements it in its tiny details.
+
+OpenTask is a straightforward task management app. It has a marketing site, a sign-in page, and application pages for authenticated users who can create projects and tasks. It has a Today page to show tasks due today and overdue and a Settings page where users can delete their accounts. It's a stripped-down version of [Todoist](https://todoist.com/).
+
+### Naming conventions
+
+Naming conventions are complicated. What names to use and how to format them (Pascal case, Kebab case, etc) are mostly a matter of personal preference.
+
+I like to use the Pascal case for naming React components, and since I like to have one component per file, I like to name the file the same. But those are personal preferences. Nexar has no recommendations regarding naming conventions. If the community comes up with good ones, we can adopt them.
+
+### Test suite
+
+OpenTask has no tests, and I consider this its biggest engineering miss.
+
+I postponed writing tests for the MVP because I used new tools and techniques, including [React Server Components](https://flsilva.com/blog/react-server-components-and-a-new-hybrid-web-app-model/) and [Server Actions](https://flsilva.com/blog/react-server-components-and-a-new-hybrid-web-app-model/#server-actions), and I needed to figure out what the codebase would look like. I also wanted to move fast while experimenting with those new features.
+
+That made sense. But now I plan on adding a test suite, reevaluating tools and techniques to achieve an optimized way to test Next.js App Router apps, including React Server Components and Server Actions. Once I finish it, I'll update this doc to cover testing and a test suite.
+
+Do you have a great way to test Next.js App Router apps? Please [share it](https://github.com/flsilva/nexar.dev/discussions) with us.
+
+### Starting a new Next.js App Router app
+
+I will discuss some Next.js App Router implementation details when appropriate to provide a broad understanding of the app structure.
+
+The recommended way to start a new App Router app is using [create-next-app](https://nextjs.org/docs/getting-started/installation#automatic-installation).
+
+You may or may not use the _`src`_ directory. Nexar recommends using it. It's a great way to separate application code from configuration files.
+
+### _`src/`_ folder structure
+
+After starting a new Next.js App Router app, Next.js automatically creates an _`app`_ folder inside the root _`src`_ folder.
+
+That's the root of any Next.js App Router application, and we cannot rename it.
+
+Next.js uses a [file-based routing system](https://nextjs.org/docs/app/building-your-application/routing/defining-routes), where subfolders of the _`src/app/`_ folder define route segments. Each route segment is mapped to a corresponding segment in a URL path. Those route segments define the entry points of our application, the URLs.
+
+Each _`page.tsx`_ in the _`src/app/`_ subtree defines a React component for its route segment and is used to compose the segment UI with reusable UI components. In Nexar, we define these reusable UI components at the top-level _`src/features/`_ folder, which is further explained.
+
+Alongside the _`app`_ folder we create a folder named _`features`_, so the following is the structure of our root _`src/`_ folder:
+
+```shell
+src/app/
+src/features/
+```
+
+That way, Nexar provides a two-fold separation of concerns, with two types of modules: **routing** modules, which go into _`src/app/`_, and **business feature** modules, which go into _`src/features/`_.
+
+Both types of modules should match perfectly _whenever possible_. In OpenTask, we have the following matches:
+
+```shell
+src/app/(marketing)/
+src/app/auth/
+src/app/app/projects/
+src/app/app/tasks/
+```
+
+```shell
+src/features/marketing)
+src/features/auth/
+src/features/app/projects/
+src/features/app/tasks/
+```
+
+You might ask why have a separate _`src/features`_ folder. Why not put everything inside _`src/app`_?
+
+Since we define our public application entry points in _`src/app`_, we might have many related but separated entry points for similar features, campaigns, etc. After some time, they might get cluttered. Those are our **routing** modules.
+
+But we should structure the code powering those routes to reflect the meaningful business concepts behind the application. So, we use a separate _`src/features`_ folder to build our **business feature** modules.
+
+As we evolve our apps, we should refactor both types of modules to keep them clean and matching.
+
+### Nexar is a modular architecture
+
+A [modular architecture](https://flsilva.com/blog/what-is-software-architecture/#modular-architectures) is an architectural style that breaks the system into meaningful subsystems; each subsystem is a self-contained module. There are many modular architectures, each focusing on solving a particular set of problems.
+
+#### Modules should reflect business features
+
+<InfoBox>
+  In Nexar, each module corresponds to a business feature, not a technical one.
+</InfoBox>
+
+So, instead of having modules like:
+
+```shell
+actions/
+components/
+hooks/
+```
+
+We have modules like:
+
+```shell
+auth/
+marketing/
+projects/
+tasks/
+users/
+```
+
+Ideally, a business feature module is self-contained, i.e., it doesn't depend on code from any other module. In the real world, dependencies are natural.
+
+For example, _`tasks`_ belong to _`projects`_, meaning those modules have at least some degree of dependency.
+
+Nonetheless, we should strive to design self-contained modules, exposing minimal APIs for their communication when necessary.
+
+Modules can have submodules. For example, _`app`_ is a module that hosts submodules for the product's application, i.e., the features reserved for authenticated users.
+
+Let's first look at the **routing** modules and, after them, the **business feature** modules.
+
+### _`src/app/`_ folder structure
+
+We should use the _`src/app/`_ folder **exclusively** for routing code (our **routing** modules), i.e., Next.js' [routing files and folders](https://nextjs.org/docs/getting-started/project-structure#routing-files) like [page.tsx](https://nextjs.org/docs/app/api-reference/file-conventions/page), [layout.tsx](https://nextjs.org/docs/app/api-reference/file-conventions/layout), [loading.tsx](https://nextjs.org/docs/app/api-reference/file-conventions/loading), and [error.tsx](https://nextjs.org/docs/app/api-reference/file-conventions/error). Everything else goes to the top-level _`src/features/`_ folder.
+
+Nexar implements a modular architecture for our **routing** and **business feature** code that reflects the application's business features.
+
+The following is the folder structure of the routing modules of OpenTask at _`src/app`_:
+
+```shell
+src/app/error.tsx
+src/app/favicon.ico
+src/app/global-error.tsx
+src/app/globals.css
+src/app/layout.tsx
+src/app/not-found.tsx
+
+src/app/(marketing)/
+src/app/app/
+src/app/auth/
+```
+
+The _`src/app/layout.tsx`_ is the root layout of a Next.js App Router application, containing the _`<html>`_ and _`<body>`_ tags. Next.js App Router supports [nested layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts#layouts), with parent layouts wrapping children layouts using React's [children prop](https://react.dev/learn/passing-props-to-a-component#passing-jsx-as-children).
+
+We should leverage App Router's features and best practices as much as possible, using [Parallel Routes](https://nextjs.org/docs/app/building-your-application/routing/parallel-routes), [Intercepting Routes](https://nextjs.org/docs/app/building-your-application/routing/intercepting-routes), and [layout.tsx](https://nextjs.org/docs/app/api-reference/file-conventions/layout), [loading.tsx](https://nextjs.org/docs/app/api-reference/file-conventions/loading), [error.tsx](https://nextjs.org/docs/app/api-reference/file-conventions/error), etc, files properly.
+
+#### _`marketing`_ routing module
+
+The following is the folder structure of the _`src/app/(marketing)`_ routing module, defining marketing and legal route segments:
+
+```shell
+src/app/(marketing)/layout.tsx
+
+src/app/(marketing)/page.tsx
+src/app/(marketing)/about/page.mdx
+src/app/(marketing)/features/page.tsx
+src/app/(marketing)/pricing/page.tsx
+src/app/(marketing)/privacy/page.mdx
+src/app/(marketing)/terms/page.mdx
+```
+
+The _`src/app/(marketing)/`_ folder defines a [Route Group](https://nextjs.org/docs/app/building-your-application/routing/route-groups) for marketing pages. Route Groups (folders in parenthesis) are omitted from the URL while allowing a layout implementation for the group, alongside other Next.js-specific files, including [error.tsx](https://nextjs.org/docs/app/api-reference/file-conventions/error) and [loading.tsx](https://nextjs.org/docs/app/api-reference/file-conventions/loading).
+
+The _`src/app/(marketing)/layout.tsx`_ implements the layout for marketing and legal pages and is wrapped by the root layout at _`src/app/layout.tsx`_.
+
+The _`src/app/(marketing)/page.tsx`_ defines the product's landing page. Since folders in parenthesis are omitted from the URL, that's the root _`page.tsx`_ file.
+
+#### _`auth`_ routing module
+
+The following is the folder structure of the _`src/app/auth`_ routing module, defining authentication route segments:
+
+```shell
+src/app/auth/error.tsx
+src/app/auth/layout.tsx
+
+src/app/auth/sign-in/page.tsx
+app/auth/sign-in/check-email-link/page.tsx
+```
+
+The _`app/auth/layout.tsx`_ implements the layout for authentication pages and is wrapped by the root layout at _`app/layout.tsx`_.
+
+The _`app/auth/error.tsx`_ is rendered in place of _`app/auth/sign-in/page.tsx`_ when there's a JavaScript error when users try to sign in.
+
+#### _`app`_ routing module
+
+The following is the folder structure of the _`src/app/app/`_ routing module, defining application route segments for authenticated users:
+
+```shell
+src/app/app/layout.tsx
+src/app/app/not-found.tsx
+
+src/app/app/page.tsx
+
+src/app/app/@dialog/default.tsx
+src/app/app/@dialog/page.tsx
+```
+
+The _`src/app/app/layout.tsx`_ implements the layout for application pages and is wrapped by the root layout _`src/app/layout.tsx`_.
+
+We define a _`@dialog`_ [Parallel Routing](https://nextjs.org/docs/app/building-your-application/routing/parallel-routes) at the root of the product's application that we use to render dialogs (modals) as [Intercepting Routes](https://nextjs.org/docs/app/building-your-application/routing/intercepting-routes).
+
+When users sign in, they're redirected to _`https://opentask.app/app/onboarding`_, rendering the _`<OnboardingPage>`_ component defined at _`src/app/app/onboarding/page.tsx`_.
+
+If users try to navigate to _`https://opentask.app/app`_, they're redirected to _`/app/onboarding`_. We handle this redirect in _`src/app/app/page.tsx`_.
+
+The _`src/app/app`_ module has submodules that we see next.
+
+#### _`onboarding`_ routing module
+
+The following is the folder structure of the _`src/app/app/onboarding/`_ routing module, defining a single onboarding route segment:
+
+```shell
+src/app/app/onboarding/page.tsx
+```
+
+#### _`projects`_ routing module
+
+The following is the folder structure of the _`src/app/app/projects/`_ routing module, defining project route segments:
+
+```shell
+src/app/app/@dialog/(.)projects/default.tsx
+src/app/app/@dialog/(.)projects/not-found.tsx
+src/app/app/@dialog/(.)projects/page.tsx
+src/app/app/@dialog/(.)projects/[projectId]/edit/page.tsx
+src/app/app/@dialog/(.)projects/new/page.tsx
+
+src/app/app/projects/not-found.tsx
+src/app/app/projects/[projectId]/page.tsx
+src/app/app/projects/[projectId]/edit/page.tsx
+src/app/app/projects/active/page.tsx
+src/app/app/projects/archived/page.tsx
+src/app/app/projects/new/page.tsx
+```
+
+#### _`tasks`_ routing module
+
+The following is the folder structure of the _`src/app/app/tasks/`_ routing module, defining task route segments:
+
+```shell
+src/app/app/@dialog/(.)tasks/not-found.tsx
+src/app/app/@dialog/(.)tasks/[taskId]/page.tsx
+src/app/app/@dialog/(.)tasks/new/page.tsx
+
+src/app/app/tasks/not-found.tsx
+src/app/app/tasks/[taskId]/page.tsx
+src/app/app/tasks/new/page.tsx
+```
+
+#### _`today`_ routing module
+
+The following is the folder structure of the _`src/app/app/today/`_ routing module, defining a single today route segment:
+
+```shell
+src/app/app/today/page.tsx
+```
+
+#### _`settings/account`_ routing module
+
+The following is the folder structure of the _`src/app/app/settings/account/`_ routing module, defining a single account route segment:
+
+```shell
+src/app/app/@dialog/(.)settings/account/page.tsx
+src/app/app/settings/account/page.tsx
+```
+
+#### _`main-nav`_ routing module
+
+The following is the folder structure of the _`src/app/app/main-nav/`_ routing module, defining a single main navigation route segment:
+
+```shell
+src/app/app/@dialog/(.)main-menu/page.tsx
+src/app/app/main-nav/page.tsx
+```
+
+This page is accessed only from mobile devices, opening the main navigation fullscreen in a dialog for a better user experience. On large screens, the main navigation is always visible as a sidebar.
+
+### _`src/features/`_ folder structure
+
+So far, we've been discussing only **routing** modules, which go inside _`src/app`_. Now, we'll see the **business feature** modules inside _`src/features`_.
+
+Nexar implements a modular and layered architecture for our **business feature modules** that reflects the application's business features.
+
+The following is the folder structure of the business feature modules of OpenTask at _`src/features`_:
+
+```shell
+src/features/app/
+src/features/auth/
+src/features/marketing/
+src/features/shared/
+```
+
+The _`app`_ feature module hosts all business feature modules for the application routes, i.e., routes for authenticated users.
+
+The _`auth`_ feature module hosts reusable components imported by authentication routes.
+
+The _`marketing`_ feature module hosts reusable components imported by marketing routes.
+
+The _`shared`_ feature module hosts reusable components imported by any route. That's a special "feature" module that's not actually a business feature but a helpful convention among codebases for code reusability.
+
+### Nexar is a layered architecture
+
+The [layered architecture](https://flsilva.com/blog/what-is-software-architecture/#layers-and-layered-architectures) is one of the most common architectural patterns and a great way to implement the [Separation of Concerns](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/architectural-principles#separation-of-concerns) principle.
+
+In a layered architecture, we organize components into horizontal layers, each on top of the other. The communication between layers is typically unidirectional, with a higher layer only using the services from its lower layer.
+
+Although there are many variations of the layered architecture, the industry has converged a few layers.
+
+Layers are typically at the top level of codebases; for example:
+
+```shell
+src/data-access
+src/domain
+src/presentation
+```
+
+And inside each layer, we would have code for the application's features.
+
+But on Nexar, it's the other way around. We have the **business feature** modules at the top-level folder structure as our modular architecture and a layered architecture inside each **business feature** module.
+
+### Nexar's three main layers
+
+_`projects`_ and _`tasks`_ are classic **business feature** modules implementing the product's key features.
+
+We define them as top-level modules of our application as:
+
+```shell
+src/features/app/projects
+src/features/app/tasks
+```
+
+We have a layered architecture inside each feature module for the three main layers of Nexar: [Domain](/learn/#domain-layer), [Data Access](/learn/#data-access-layer), and [Presentation](/learn/#presentation-layer).
+
+Each file in a feature module implements the logic of a single layer. We cannot mix the code of different layers in the same file.
+
+We can have the files of different layers at the root of feature modules, or we might have a folder for each layer.
+
+Having all files at the root of feature modules might be more suitable for small modules with fewer files. A folder for each layer might be more suitable for large modules with many files.
+
+In OpenTask, I decided always to have a folder for each layer to have a uniform codebase. But that's a personal preference, not a recommendation.
+
+The following diagram illustrates the three main layers and their intercommunication:
+
+<ImageWrapper
+  alt="Nexar Layers Diagram"
+  src="/images/layers-diagram.png"
+  width={1179}
+  height={757}
+  style={{
+    marginLeft: "auto",
+    marginRight: "auto",
+    maxWidth: "500px",
+    width: "100%",
+    height: "auto",
+  }}
+/>
+
+Now, let's see the details of each layer.
+
+#### Domain layer
+
+The domain layer is the heart of complex software, providing components to execute business logic and rules.
+
+<InfoBox>
+  In Nexar, the domain layer may depend on the domain layer of other modules to
+  enforce its rules, but it should never depend on other layers.
+</InfoBox>
+
+The domain layer and domain modeling are incredibly complex subjects at the center of the fantastic [Domain-Driven Design](https://www.amazon.com/Domain-Driven-Design-Tackling-Complexity-Software/dp/0321125215/) book.
+
+In Nexar, we want a straightforward and lightweight domain layer to isolate the necessary business logic implemented as pure functions.
+
+Although Domain-Driven Design and the domain layer are typically implemented in the OOP paradigm, they can also be [implemented in FP](https://www.thoughtworks.com/en-br/insights/blog/architecture/domain-driven-design-in-functional-programming), which is more appropriate in the context of JavaScript, React, and Next.js.
+
+#### Data Access layer
+
+The Data Access layer provides components to access data from different sources, abstracting away the specific details of data storage and CRUD operations. It should validate data before persisting it and implement caching, access control, and security strategies.
+
+It depends on components from the Domain layer to enforce business rules. For example, verify if a user can access or perform some data mutation.
+
+It typically depends on reusable code that abstracts away data access and related problems. For example, OpenTask's current implementation uses [Prisma](https://www.prisma.io/).
+
+<InfoBox>
+  The Data Access layer should never depend on the Presentation layer.
+</InfoBox>
+
+#### Presentation layer
+
+I've worked on many React applications where I chose to have separate Application and Presentation layers. Sometimes, it was overkill; other times, it was necessary for the project's success.
+
+Such separation allows the Presentation layer to provide highly reusable, dumb UI components that only implement UI-related logic and behavior.
+
+In such architectures, the Application layer provides components for application behavior, assembling dumb UI components into functional ones. It translates UI events, like button clicks, into application events and flows, like authenticating users. It fetches data, coordinates, and delegates work by implementing and reusing logic from other layers.
+
+In React, this separation is also known as the [Container/Presentational Pattern](https://www.patterns.dev/react/presentational-container-pattern) (Dan Abramov also [wrote about it](https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0) back in 2015).
+
+When I started OpenTask, I experimented with different approaches, including separating Application and Presentation logic. However, since we can eliminate all client-side data fetching and application-level state management logic with the new App Router, a separate Application layer proved to bring little to no value.
+
+Instead, in Nexar and so OpenTask, the Presentation layer has two kinds of React components:
+
+1. Dumb UI components that only render data on the screen and listen to interactive events, like _`<Dialog>`_ and _`<ProjectListItem>`_;
+2. Components with a **thin layer of application logic** alongside rendering logic, like data fetching, calling a Server Action, or validating forms, like _`<ProjectList>`_ and _`<ProjectForm>`_.
+
+I call the React components that fetch their data [full-stack React components](https://flsilva.com/blog/react-server-components-and-a-new-hybrid-web-app-model/#building-full-stack-react-components): they're self-contained data-driven [React Server Components](https://flsilva.com/blog/react-server-components-and-a-new-hybrid-web-app-model/) that are fully reusable and composable despite their data dependencies. They weren't possible before React Server Components. _`<ProjectList>`_ and _`<TaskList>`_ are two examples from OpenTask.
+
+It's worth noting that this is not the same as the [Smart UI Anti-Pattern](https://copyprogramming.com/howto/what-is-the-smart-ui-anti-pattern), as we still have separate Domain and Data Access layers.
+
+The Presentation layer depends on the Data Access layer to fetch data and call Server Actions.
+
+The Presentation layer depends on the Domain layer to enforce some business rules, like validating forms for faster UX (we should always validate forms and data on the server regardless of client validation).
+
+We can have functions in the Presentation layer that are not React components.
+
+OpenTask has the following function:
+
+```shell
+src/features/app/tasks/presentation/formatTaskDueDate.ts
+```
+
+It receives two date objects and returns a string. It's not a React component. Nonetheless, its logic belongs to the Presentation layer.
+
+<InfoBox>
+  It's also worth noting that files in the routing modules, i.e., in the
+  Next.js' _`src/app`_ folder, also belong to the Presentation layer.
+  _`page.tsx`_, _`layout.tsx`_, _`loading.tsx`_, _`error.tsx`_, etc, are all
+  React components that belong to the Presentation layer. We must define them
+  separately from the rest of the Presentation components that live in the
+  _`src/features`_ folder, but that's just a technical detail we must live with.
+</InfoBox>
+
+### Other layers
+
+#### Navigation layer
+
+Next.js is a comprehensive framework with a complete routing solution. That's why most apps won't need a navigation layer at all.
+
+In OpenTask, we only have a small routing utility I built at _`src/features/shared/navigation`_. You can read about it here (a link will be added soon).
+
+However, a navigation layer might be necessary for complex cases.
+
+I once led the development of a [CRA](https://create-react-app.dev/)-based cross-platform [React Native Web](https://necolas.github.io/react-native-web/) app. I put together a modular and layered architecture with a navigation layer that used a navigation solution for iOS and Android and another for the web. That allowed the team to isolate platform-specific code in the navigation layer and reuse the rest of the codebase almost entirely among all three platforms.
+
+Will React Native support React Server Components? I can't say, but [the community](https://twitter.com/grabbou/status/1733388904714178567) is [working on it](https://twitter.com/Baconbrix/status/1629909713910480898).
+
+Building a cross-platform Next.js App Router app using React Server Components and a hybrid component tree would be fantastic. In such cases, a navigation layer might be necessary to support different navigation strategies.
+
+If we have a concrete case, we might see how a navigation layer fits into Nexar.
+
+#### Infrastructure layer
+
+React and Next.js provide the infrastructure layer upon which we build our apps. That's why most apps won't need an Infrastructure layer, either.
+
+However, sometimes, we must write some infrastructural code that doesn't fit the other layers. In such cases, we can use the Infrastructure layer to sort it out.
+
+Infrastructure code usually spans several modules, which makes it ideal to go into a shared module, e.g., _`src/features/shared/infrastructure`_. But we should place it in specific feature modules when that's the case.
+
+### Business feature modules
+
+Let's now return to OpenTask's **business feature** modules at our root _`src/features`_ folder.
+
+#### _`shared`_ business feature module
+
+The following is the folder structure of the _`src/features/shared`_ business feature module:
+
+```shell
+data-access/
+navigation/
+presentation/
+```
+
+The following is the folder structure of the _`src/features/shared/data-access`_ layer:
+
+```shell
+data-access/cuid2.ts
+data-access/prisma.ts
+data-access/ServerResponse.ts
+```
+
+The following is the folder structure of the _`src/features/shared/navigation/`_ layer:
+
+```shell
+navigation/RouterActions.tsx
+navigation/useIsPathActive.ts
+navigation/useRouterAction.ts
+```
+
+The following is the folder structure of the _`src/features/shared/presentation/`_ layer:
+
+```shell
+presentation/analytics/
+presentation/control/button/
+presentation/control/dropdown/
+presentation/control/input/
+presentation/control/select/
+presentation/control/switch/
+presentation/dialog/
+presentation/error/
+presentation/feedback/
+presentation/form/
+presentation/icon/
+presentation/logo/
+presentation/pwa/
+presentation/skeleton/
+```
+
+To keep it brief, I've omitted presentation files. You can see them here (a link will be added soon).
+
+#### _`marketing`_ business feature module
+
+The following is the folder structure of the _`src/features/marketing/`_ business feature module:
+
+```shell
+shared/presentation/Footer.tsx
+shared/presentation/Header.tsx
+shared/presentation/HeroCopy.tsx
+shared/presentation/HeroHeading.tsx
+shared/presentation/HeroShell.tsx
+shared/presentation/MainMenu.tsx
+shared/presentation/MainMenuMobile.tsx
+```
+
+The _`src/features/marketing/shared/`_ module hosts reusable components imported by any marketing route.
+
+We can have reusable components for specific marketing routes in folders such as _`features/marketing/landing-page`_ and _`features/marketing/pricing`_ if necessary.
+
+We could've opted not to have a _`presentation`_ layer folder and have the code in the module's root at _`shared/`_ for simplicity since that's the only layer of code we have here.
+
+#### _`auth`_ business feature module
+
+The following is the folder structure of the _`src/features/auth/`_ business feature module:
+
+```shell
+AuthDataAccess.ts
+OAuthProvider.ts
+```
+
+#### _`app`_ business feature module
+
+The following is the folder structure of the _`src/features/app/`_ business feature module:
+
+```shell
+app/projects/
+app/settings/
+app/shared/
+app/tasks/
+app/today/
+app/users/
+```
+
+The _`app`_ feature module is an umbrella module for its submodules, comprising the product's application features. OpenTask doesn't contain any code in the _`app`_ module itself, but it could if needed.
+
+#### _`app/shared`_ business feature module
+
+The following is the folder structure of the _`src/features/app/shared/`_ business feature module:
+
+```shell
+app/shared/presentation/Header.tsx
+app/shared/presentation/MainNav.tsx
+app/shared/presentation/MainNavLink.tsx
+```
+
+That's a special "feature" module that's not actually a business feature but a helpful convention among codebases for code reusability.
+
+We could have a folder for each component above, like _`presentation/header`_ and _`presentation/main-nav`_. However, since there are fewer components, it's okay to have all of them share the same _`presentation`_ folder. Again, these are personal preferences, not recommendations.
+
+#### _`projects`_ business feature module
+
+The following is the folder structure of the _`src/features/app/projects/`_ business feature module:
+
+```shell
+app/projects/data-access/ProjectDataAccess.ts
+
+app/projects/domain/ProjectDomain.ts
+
+app/projects/presentation/ProjectForm.tsx
+app/projects/presentation/ProjectList.tsx
+app/projects/presentation/ProjectListItem.tsx
+```
+
+Not all presentation files are listed above; you can check them here (a link will be added soon).
+
+In OpenTask, the _`ProjectDomain.ts`_ implements business logic for the _project_ business concept in a task management application.
+
+Naming the file _`ProjectDomain.ts`_ is not a recommendation; you can use a different name, and please share your preferences. Besides, a single file works well if we don't have a lot of business logic. Having more than one file would require changing this naming.
+
+OpenTask is very simple, and the implementation of _`ProjectDomain.ts`_ reflects that simplicity: data validation to create and update projects using [zod](https://zod.dev/).
+
+We can add pure functions in that file to implement additional business logic if needed. For example, if we had support for team members, we could have a _`canUserDeleteProject(user, project)`_ pure function to validate if users can delete projects they're members of but not owners.
+
+The _`ProjectDataAccess.ts`_ implements the data access logic for projects; it's a classic CRUD implementation.
+
+It also implements [Data Transfer Object (DTO)](https://martinfowler.com/eaaCatalog/dataTransferObject.html) TypeScript types [inferred from Zod schemas](https://github.com/colinhacks/zod#type-inference).
+
+Naming the file _`ProjectDataAccess.ts`_ is not a recommendation either; you can use a different name. Besides, a single file works well if we don't have a lot of data access logic. Having more than one file would require changing this naming.
+
+#### _`tasks`_ business feature module
+
+The following is the folder structure of the _`src/features/app/tasks/`_ business feature module:
+
+```shell
+app/tasks/data-access/TaskDataAccess.ts
+
+app/tasks/domain/TaskDomain.ts
+
+app/tasks/presentation/TaskForm.tsx
+app/tasks/presentation/TaskList.tsx
+app/tasks/presentation/TaskListItem.tsx
+```
+
+Not all presentation files are listed above; you can check them here (a link will be added soon).
+
+This module is implemented in the same way as the _`projects`_ business feature module we just saw above, i.e., _`TaskDomain.ts`_ implements data validation to create and update tasks using [zod](https://zod.dev/), and _`TaskDataAccess.ts`_ is a classic CRUD implementation and also implements DTOs.
+
+#### _`today`_ business feature module
+
+The following is the folder structure of the _`src/features/app/today/`_ business feature module:
+
+```shell
+app/today/presentation/TodayPageHeader.tsx
+```
+
+#### _`settings/account`_ business feature module
+
+The following is the folder structure of the _`src/features/app/settings/`_ business feature module:
+
+```shell
+app/settings/account/presentation/AccountSettings.tsx
+app/settings/presentation/SettingsMenu.tsx
+```
+
+#### _`users`_ business feature module
+
+The following is the folder structure of the _`src/features/app/users/`_ business feature module:
+
+```shell
+app/users/data-access/UserDataAccess.tsx
+app/users/presentation/UpdateUserTimeZone.tsx
+```
+
+### Conclusion
+
+I designed Nexar to take full advantage of the new Next.js App Router and meet OpenTask's needs.
+
+I want to build more apps using it to keep improving it, and I would love to evolve Nexar collectively, exchanging knowledge with the community. To share your thoughts, please [open a GitHub discussion](https://github.com/flsilva/nexar.dev/discussions). Let's talk about it.
+
+### About versioning the architecture
+
+The _`nexar.dev/learn`_ page will always show the latest version of the architecture.
+
+I plan to keep using and making several minor improvements to Nexar. I'm calling the present version a beta version to make these improvements possible without explicitly versioning them in the next several months (although any changes will always be visible in Nexar's [public repo](https://github.com/flsilva/nexar.dev/)). I also intend to provide more detailed explanations of specific concepts and cover OpenTask's implementation in greater depth.
+
+However, I'm not planning to make any extensive changes to Nexar so that we can consider its overall design stable. I would design a new architecture to meet different use cases that don't fit the current state of Nexar.
+
+If I can keep using and improving it, it might make sense to release a v1.0 by the end of this year (2024). But I'd love to evolve the architecture with the community, so please [open a GitHub discussion](https://github.com/flsilva/nexar.dev/discussions) and give some feedback. Let's talk about it. I'm sure there are tons of improvements to be made to Nexar.
+
+I plan to create versioned URLs for older versions of the architecture for future reference when new versions are released.

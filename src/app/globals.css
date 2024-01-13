@@ -3,25 +3,65 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --foreground-rgb: 25, 25, 25;
+  --background-rgb: 245, 245, 245;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --foreground-rgb: 245, 245, 245;
+    --background-rgb: 25, 25, 25;
   }
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background-color: rgb(var(--background-rgb));
 }
+
+h3 .ch-inline-code > code {
+  font-size: 1.5rem;
+}
+
+/*
+ * Styles for custom SVG icon for rehype-autolink-headings
+ */
+
+h3 > a,
+h4 > a {
+  position: relative;
+}
+
+h3 > a > .anchor-icon,
+h4 > a > .anchor-icon {
+  position: relative;
+}
+
+h3 > a > .anchor-icon > svg,
+h4 > a > .anchor-icon > svg {
+  fill: rgb(var(--foreground-rgb));
+  position: absolute;
+  visibility: hidden;
+}
+
+h3:hover > a > .anchor-icon > svg,
+h4:hover > a > .anchor-icon > svg {
+  visibility: visible;
+}
+
+h3 > a > .anchor-icon > svg {
+  height: 1.5rem;
+  left: -1.5rem;
+  top: 0.25rem;
+  width: 1.5rem;
+}
+
+h4 > a > .anchor-icon > svg {
+  height: 1rem;
+  left: -1rem;
+  margin-right: 0.25rem;
+  top: 0.25rem;
+  width: 1rem;
+}
+
+/**/
