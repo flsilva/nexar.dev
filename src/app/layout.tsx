@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     images: [{ url: "https://nexar.dev/images/tweet-card.png" }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     site: "https://nexar.dev",
     title: "Nexar",
     description:
