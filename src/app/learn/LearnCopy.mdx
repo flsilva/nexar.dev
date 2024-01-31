@@ -11,6 +11,7 @@ import { InfoBox } from "./InfoBox";
 - [Test suite](#test-suite)
 - [Starting a new Next.js App Router app](#starting-a-new-nextjs-app-router-app)
 - [_`src/`_ folder structure](#src-folder-structure)
+  - [Why a separate _`src/features`_ folder?](/learn#why-a-separate-srcfeatures-folder)
 - [Nexar is a modular architecture](#nexar-is-a-modular-architecture)
   - [Modules should reflect business features](#modules-should-reflect-business-features)
 - [_`src/app/`_ folder structure](#srcapp-folder-structure)
@@ -22,15 +23,15 @@ import { InfoBox } from "./InfoBox";
   - [_`tasks`_ routing module](#tasks-routing-module)
   - [_`today`_ routing module](#today-routing-module)
   - [_`settings/account`_ routing module](#settingsaccount-routing-module)
-  - [_`main-nav`_ routing module](#main-nav-routing-module)
+  - [_`main-menu`_ routing module](#main-menu-routing-module)
 - [src/features/ folder structure](#srcfeatures-folder-structure)
 - [Nexar is a layered architecture](#nexar-is-a-layered-architecture)
 - [Nexar's three main layers](#nexars-three-main-layers)
   - [Domain layer](#domain-layer)
   - [Data Access layer](#data-access-layer)
-  - [Presentation layer](#presentation-layer)
+  - [UI layer (a.k.a. Presentation layer)](#ui-layer-aka-presentation-layer)
 - [Other layers](#other-layers)
-  - [Navigation layer](#navigation-layer)
+  - [Routing layer (a.k.a. Navigation layer)](#routing-layer-aka-navigation-layer)
   - [Infrastructure layer](#infrastructure-layer)
 - [Business feature modules](#business-feature-modules)
   - [_`shared`_ business feature module](#shared-business-feature-module)
@@ -137,7 +138,7 @@ After starting a new Next.js App Router app, Next.js automatically creates an _`
 
 That's the root of any Next.js App Router application, and we cannot rename it.
 
-Next.js uses a [file-based routing system](https://nextjs.org/docs/app/building-your-application/routing/defining-routes), where subfolders of the _`src/app/`_ folder define route segments. Each route segment is mapped to a corresponding segment in a URL path. Those route segments define the entry points of our application, the URLs.
+Next.js uses a [file-based routing system](https://nextjs.org/docs/app/building-your-application/routing/defining-routes), where subfolders of the _`src/app/`_ folder define route segments. Each route segment is mapped to a corresponding segment in a URL path. Those route segments define the public entry points of our application, the URLs.
 
 Each _`page.tsx`_ in the _`src/app/`_ subtree defines a React component for its route segment and is used to compose the segment UI with reusable UI components. In Nexar, we define these reusable UI components at the top-level _`src/features/`_ folder, which is further explained.
 
@@ -166,11 +167,31 @@ src/features/app/projects/
 src/features/app/tasks/
 ```
 
-You might ask why have a separate _`src/features`_ folder. Why not put everything inside _`src/app`_?
+#### Why a separate _`src/features`_ folder?
 
-Since we define our public application entry points in _`src/app`_, we might have many related but separated entry points for similar features, campaigns, etc. After some time, they might get cluttered. Those are our **routing** modules.
+You might ask: why should we have a separate _`src/features`_ folder? Why not put everything inside _`src/app`_?
 
-But we should structure the code powering those routes to reflect the meaningful business concepts behind the application. So, we use a separate _`src/features`_ folder to build our **business feature** modules.
+Since we define the public application entry points in _`src/app`_, over time, we might have different entry points for the same feature, different entry points for campaigns related to the same feature, etc. After some time, they might get cluttered. Those are our **routing** modules.
+
+Another issue arises when we implement [Parallel Routes](https://nextjs.org/docs/app/building-your-application/routing/parallel-routes) and [Intercepting Routes](https://nextjs.org/docs/app/building-your-application/routing/intercepting-routes).
+
+When we implement a Parallel Route, we must create a special folder to define a [_named slot_](https://nextjs.org/docs/app/building-your-application/routing/parallel-routes#slots), starting its name with _`@`_. Then, we create a folder inside the named slot to place our code. That folder would be our **business feature** module.
+
+However, having **business feature** modules inside a named slot folder, which represents a technical concept, would be awkward because that's a technical implementation detail from the framework and has nothing to do with the business, contributing to a confusing codebase. We'd mix technical concepts with business concepts. Since each can be complex by themselves, mixing them would be very confusing.
+
+Besides, we might want to present the same business feature as a self-contained page via a regular route, which means we'd have two folders for the same feature. We'd have to choose one folder for our reusable components, while the other would have only Next.js-related files like _`page.tsx`_. That's not intuitive.
+
+It'd get even worse when we implement Intercepting Routes. Besides the fact that Intercepting Routes requires a Parallel Route, i.e., the folder for an Intercepting Route must live inside a Parallel Route folder (the named slot), it also requires a special framework syntax, with the name of the folder starting with _`(.)`_, _`(..)`_, and so on. Awkward.
+
+Intercepting Routes are the best way to implement dialogs (modals), a common feature in applications. When we do that, we should also implement a regular route for the dialog outside the Parallel / Intercepting folder structure, so when users refresh the page or share its link with someone, they can see it. Otherwise, they get a 404 error.
+
+There are other use cases, like revisiting a [discarded tab](https://developer.chrome.com/blog/tab-discarding) in Google Chrome. When I tested that use case in OpenTask, revisiting a tab that was rendering the app with an open dialog, the regular route was rendered instead of the Intercepting one, behaving like a hard refresh. If we don't have a regular route set up, users get a 404 error.
+
+Implementing a regular route to support the use cases above requires having two folders for the same feature and, again, choosing one of them for our reusable components. That's not intuitive.
+
+That's why we should decouple the routing code from the business feature code. That allows for a clean, intuitive, and meaningful structure for our business feature modules that reflects business concepts while allowing us to design and build the public entry points of our applications leveraging the framework's conventions.
+
+We do that by having a separate _`src/features`_ folder to build our **business feature** modules.
 
 As we evolve our apps, we should refactor both types of modules to keep them clean and matching.
 
@@ -356,16 +377,16 @@ src/app/app/@dialog/(.)settings/account/page.tsx
 src/app/app/settings/account/page.tsx
 ```
 
-#### _`main-nav`_ routing module
+#### _`main-menu`_ routing module
 
-The following is the folder structure of the _`src/app/app/main-nav/`_ routing module, defining a single main navigation route segment:
+The following is the folder structure of the _`src/app/app/main-menu/`_ routing module, defining a single route segment:
 
 ```shell
 src/app/app/@dialog/(.)main-menu/page.tsx
-src/app/app/main-nav/page.tsx
+src/app/app/main-menu/page.tsx
 ```
 
-This page is accessed only from mobile devices, opening the main navigation fullscreen in a dialog for a better user experience. On large screens, the main navigation is always visible as a sidebar.
+This page is accessed only from mobile devices, which opens the main menu fullscreen in a dialog for a better user experience. On large screens, the main menu is always visible as a sidebar.
 
 ### _`src/features/`_ folder structure
 
@@ -403,7 +424,7 @@ Layers are typically at the top level of codebases; for example:
 ```shell
 src/data-access
 src/domain
-src/presentation
+src/ui
 ```
 
 And inside each layer, we would have code for the application's features.
@@ -421,9 +442,9 @@ src/features/app/projects
 src/features/app/tasks
 ```
 
-We have a layered architecture inside each feature module for the three main layers of Nexar: [Domain](/learn/#domain-layer), [Data Access](/learn/#data-access-layer), and [Presentation](/learn/#presentation-layer).
+We have a layered architecture inside each feature module for the three main layers of Nexar: [Domain](/learn/#domain-layer), [Data Access](/learn/#data-access-layer), and [UI](/learn/#ui-layer).
 
-Each file in a feature module implements the logic of a single layer. We cannot mix the code of different layers in the same file.
+Each file in a feature module implements the logic of a single layer. We **do not** mix the code of different layers in the same file.
 
 We can have the files of different layers at the root of feature modules, or we might have a folder for each layer.
 
@@ -472,23 +493,23 @@ It depends on components from the Domain layer to enforce business rules. For ex
 
 It typically depends on reusable code that abstracts away data access and related problems. For example, OpenTask's current implementation uses [Prisma](https://www.prisma.io/).
 
-<InfoBox>
-  The Data Access layer should never depend on the Presentation layer.
-</InfoBox>
+<InfoBox>The Data Access layer should never depend on the UI layer.</InfoBox>
 
-#### Presentation layer
+A Data Access layer is [recommended by Vercel](https://nextjs.org/blog/security-nextjs-server-components-actions#data-access-layer).
 
-I've worked on many React applications where I chose to have separate Application and Presentation layers. Sometimes, it was overkill; other times, it was necessary for the project's success.
+#### UI layer (a.k.a. Presentation layer)
 
-Such separation allows the Presentation layer to provide highly reusable, dumb UI components that only implement UI-related logic and behavior.
+I've worked on many React applications where I chose to have separate Application and UI layers. Sometimes, it was overkill; other times, it was necessary for the project's success.
+
+Such separation allows the UI layer to provide highly reusable, dumb UI components that only implement UI-related logic and behavior.
 
 In such architectures, the Application layer provides components for application behavior, assembling dumb UI components into functional ones. It translates UI events, like button clicks, into application events and flows, like authenticating users. It fetches data, coordinates, and delegates work by implementing and reusing logic from other layers.
 
 In React, this separation is also known as the [Container/Presentational Pattern](https://www.patterns.dev/react/presentational-container-pattern) (Dan Abramov also [wrote about it](https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0) back in 2015).
 
-When I started OpenTask, I experimented with different approaches, including separating Application and Presentation logic. However, since we can eliminate all client-side data fetching and application-level state management logic with the new App Router, a separate Application layer proved to bring little to no value.
+When I started OpenTask, I experimented with different approaches, including separating Application and UI logic. However, since we can eliminate all client-side data fetching and application-level state management logic with the new App Router, a separate Application layer proved to bring little to no value.
 
-Instead, in Nexar and so OpenTask, the Presentation layer has two kinds of React components:
+Instead, in Nexar and so OpenTask, the UI layer has two kinds of React components:
 
 1. Dumb UI components that only render data on the screen and listen to interactive events, like _`<Dialog>`_ and _`<ProjectListItem>`_;
 2. Components with a **thin layer of application logic** alongside rendering logic, like data fetching, calling a Server Action, or validating forms, like _`<ProjectList>`_ and _`<ProjectForm>`_.
@@ -497,46 +518,46 @@ I call the React components that fetch their data [full-stack React components](
 
 It's worth noting that this is not the same as the [Smart UI Anti-Pattern](https://copyprogramming.com/howto/what-is-the-smart-ui-anti-pattern), as we still have separate Domain and Data Access layers.
 
-The Presentation layer depends on the Data Access layer to fetch data and call Server Actions.
+The UI layer depends on the Data Access layer to fetch and mutate data by directly calling data fetching functions and Server Actions.
 
-The Presentation layer depends on the Domain layer to enforce some business rules, like validating forms for faster UX (we should always validate forms and data on the server regardless of client validation).
+The UI layer depends on the Domain layer to enforce some business rules, like validating forms for faster UX, even though we should always validate forms and data on the server regardless of client validation.
 
-We can have functions in the Presentation layer that are not React components.
+We can have functions in the UI layer that are not React components.
 
 OpenTask has the following function:
 
 ```shell
-src/features/app/tasks/presentation/formatTaskDueDate.ts
+src/features/app/tasks/ui/formatTaskDueDate.ts
 ```
 
-It receives two date objects and returns a string. It's not a React component. Nonetheless, its logic belongs to the Presentation layer.
+It receives two date objects and returns a string. It's not a React component. Nonetheless, its logic belongs to the UI layer.
 
 <InfoBox>
   It's also worth noting that files in the routing modules, i.e., in the
-  Next.js' _`src/app`_ folder, also belong to the Presentation layer.
-  _`page.tsx`_, _`layout.tsx`_, _`loading.tsx`_, _`error.tsx`_, etc, are all
-  React components that belong to the Presentation layer. We must define them
-  separately from the rest of the Presentation components that live in the
-  _`src/features`_ folder, but that's just a technical detail we must live with.
+  Next.js' _`src/app`_ folder, also belong to the UI layer. _`page.tsx`_,
+  _`layout.tsx`_, _`loading.tsx`_, _`error.tsx`_, etc, are all React components
+  that belong to the UI layer. We must define them separately from the rest of
+  the UI components that live in the _`src/features`_ folder, but that's just an
+  implementation detail we must live with.
 </InfoBox>
 
 ### Other layers
 
-#### Navigation layer
+#### Routing layer (a.k.a. Navigation layer)
 
-Next.js is a comprehensive framework with a complete routing solution. That's why most apps won't need a navigation layer at all.
+Next.js is a comprehensive framework with a complete routing solution. That's why most apps won't need a routing layer at all.
 
-In OpenTask, we only have a small routing utility I built at _`src/features/shared/navigation`_. You can read about it here (a link will be added soon).
+In OpenTask, we only have a small routing utility I built at _`src/features/shared/routing`_. You can read about it here (a link will be added soon).
 
-However, a navigation layer might be necessary for complex cases.
+However, a Routing layer might be necessary for complex cases.
 
-I once led the development of a [CRA](https://create-react-app.dev/)-based cross-platform [React Native Web](https://necolas.github.io/react-native-web/) app. I put together a modular and layered architecture with a navigation layer that used a navigation solution for iOS and Android and another for the web. That allowed the team to isolate platform-specific code in the navigation layer and reuse the rest of the codebase almost entirely among all three platforms.
+I once led the development of a [CRA](https://create-react-app.dev/)-based cross-platform [React Native Web](https://necolas.github.io/react-native-web/) app. I put together a modular and layered architecture with a Routing layer that used a routing solution for iOS and Android and another for the web to take the most out of each platform. That allowed the team to isolate most of the platform-specific code in the Routing layer and reuse almost the entire codebase among all three platforms.
 
 Will React Native support React Server Components? I can't say, but [the community](https://twitter.com/grabbou/status/1733388904714178567) is [working on it](https://twitter.com/Baconbrix/status/1629909713910480898).
 
-Building a cross-platform Next.js App Router app using React Server Components and a hybrid component tree would be fantastic. In such cases, a navigation layer might be necessary to support different navigation strategies.
+Building a cross-platform Next.js App Router app using React Server Components and a hybrid component tree would be fantastic. In such cases, a Routing layer might be necessary to support different routing strategies, or we might use a cross-platform routing solution like [Expo Router](https://docs.expo.dev/router/introduction/).
 
-If we have a concrete case, we might see how a navigation layer fits into Nexar.
+If we have a concrete case, we might see how a Routing layer fits into Nexar.
 
 #### Infrastructure layer
 
@@ -556,8 +577,8 @@ The following is the folder structure of the _`src/features/shared`_ business fe
 
 ```shell
 data-access/
-navigation/
-presentation/
+routing/
+ui/
 ```
 
 The following is the folder structure of the _`src/features/shared/data-access`_ layer:
@@ -568,62 +589,66 @@ data-access/prisma.ts
 data-access/ServerResponse.ts
 ```
 
-The following is the folder structure of the _`src/features/shared/navigation/`_ layer:
+The following is the folder structure of the _`src/features/shared/routing/`_ layer:
 
 ```shell
-navigation/RouterActions.tsx
-navigation/useIsPathActive.ts
-navigation/useRouterAction.ts
+routing/GoogleAnalytics.tsx
+routing/RouterActions.tsx
+routing/useIsPathActive.ts
+routing/useRouterAction.ts
 ```
 
-The following is the folder structure of the _`src/features/shared/presentation/`_ layer:
+The following is the folder structure of the _`src/features/shared/ui/`_ layer:
 
 ```shell
-presentation/analytics/
-presentation/control/button/
-presentation/control/dropdown/
-presentation/control/input/
-presentation/control/select/
-presentation/control/switch/
-presentation/dialog/
-presentation/error/
-presentation/feedback/
-presentation/form/
-presentation/icon/
-presentation/logo/
-presentation/pwa/
-presentation/skeleton/
+ui/control/
+ui/dialog/
+ui/error/
+ui/feedback/
+ui/focus/
+ui/form/
+ui/icon/
+ui/keyboard/
+ui/logo/
+ui/pwa/
+ui/skeleton/
 ```
 
-To keep it brief, I've omitted presentation files. You can see them here (a link will be added soon).
+To keep it brief, I've omitted UI files. You can see them here (a link will be added soon).
 
 #### _`marketing`_ business feature module
 
 The following is the folder structure of the _`src/features/marketing/`_ business feature module:
 
 ```shell
-shared/presentation/Footer.tsx
-shared/presentation/Header.tsx
-shared/presentation/HeroCopy.tsx
-shared/presentation/HeroHeading.tsx
-shared/presentation/HeroShell.tsx
-shared/presentation/MainMenu.tsx
-shared/presentation/MainMenuMobile.tsx
+shared/ui/Footer.tsx
+shared/ui/Header.tsx
+shared/ui/HeroCopy.tsx
+shared/ui/HeroHeading.tsx
+shared/ui/MainMenu.tsx
+shared/ui/MainMenuMobile.tsx
+shared/ui/ShowContentTransition.tsx
 ```
 
 The _`src/features/marketing/shared/`_ module hosts reusable components imported by any marketing route.
 
 We can have reusable components for specific marketing routes in folders such as _`features/marketing/landing-page`_ and _`features/marketing/pricing`_ if necessary.
 
-We could've opted not to have a _`presentation`_ layer folder and have the code in the module's root at _`shared/`_ for simplicity since that's the only layer of code we have here.
+We could've opted not to have a _`ui`_ layer folder and have the code in the module's root at _`shared/`_ for simplicity since that's the only layer of code we have in this module.
 
 #### _`auth`_ business feature module
 
 The following is the folder structure of the _`src/features/auth/`_ business feature module:
 
 ```shell
-AuthDataAccess.ts
-OAuthProvider.ts
+data-access/
+```
+
+The following is the folder structure of the _`src/features/auth/data-access`_ layer:
+
+```shell
+data-access/AuthDataAccess.ts
+data-access/OAuthProvider.ts
 ```
 
 #### _`app`_ business feature module
@@ -646,69 +671,70 @@ The _`app`_ feature module is an umbrella module for its submodules, comprising 
 The following is the folder structure of the _`src/features/app/shared/`_ business feature module:
 
 ```shell
-app/shared/presentation/Header.tsx
-app/shared/presentation/MainNav.tsx
-app/shared/presentation/MainNavLink.tsx
+app/shared/ui/Header.tsx
+app/shared/ui/MainNav.tsx
+app/shared/ui/MainNavLink.tsx
 ```
 
 That's a special "feature" module that's not actually a business feature but a helpful convention among codebases for code reusability.
 
-We could have a folder for each component above, like _`presentation/header`_ and _`presentation/main-nav`_. However, since there are fewer components, it's okay to have all of them share the same _`presentation`_ folder. Again, these are personal preferences, not recommendations.
+We could have a folder for each component above, like _`ui/header`_ and _`ui/main-menu`_. However, since there are fewer components, it's okay to have all of them share the same _`ui`_ folder. Again, these are personal preferences, not recommendations.
 
 #### _`projects`_ business feature module
 
 The following is the folder structure of the _`src/features/app/projects/`_ business feature module:
 
 ```shell
-app/projects/data-access/ProjectDataAccess.ts
+app/projects/data-access/ProjectsDataAccess.ts
+app/projects/data-access/ProjectStatus.ts
 
-app/projects/domain/ProjectDomain.ts
+app/projects/domain/ProjectsDomain.ts
 
-app/projects/presentation/ProjectForm.tsx
-app/projects/presentation/ProjectList.tsx
-app/projects/presentation/ProjectListItem.tsx
+app/projects/ui/ProjectForm.tsx
+app/projects/ui/ProjectList.tsx
+app/projects/ui/ProjectListItem.tsx
 ```
 
-Not all presentation files are listed above; you can check them here (a link will be added soon).
+Not all UI files are listed above; you can check them here (a link will be added soon).
 
-In OpenTask, the _`ProjectDomain.ts`_ implements business logic for the _project_ business concept in a task management application.
+In OpenTask, the _`ProjectsDomain.ts`_ implements business logic for the _project_ business concept in a task management application.
 
-Naming the file _`ProjectDomain.ts`_ is not a recommendation; you can use a different name, and please share your preferences. Besides, a single file works well if we don't have a lot of business logic. Having more than one file would require changing this naming.
+Naming the file _`ProjectsDomain.ts`_ is not a recommendation; you can use a different name, and please share your preferences. Besides, a single file works well if we don't have a lot of business logic. Having more than one file would require changing this naming.
 
-OpenTask is very simple, and the implementation of _`ProjectDomain.ts`_ reflects that simplicity: data validation to create and update projects using [zod](https://zod.dev/).
+OpenTask is very simple, and the implementation of _`ProjectsDomain.ts`_ reflects that simplicity: data validation to create and update projects using [zod](https://zod.dev/).
 
-We can add pure functions in that file to implement additional business logic if needed. For example, if we had support for team members, we could have a _`canUserDeleteProject(user, project)`_ pure function to validate if users can delete projects they're members of but not owners.
+If needed, we can add pure functions in that file to implement additional business logic. For example, if we had support for team members, we could have a _`canUserDeleteProject(user, project)`_ pure function to validate if users can delete projects they're members of but not owners.
 
-The _`ProjectDataAccess.ts`_ implements the data access logic for projects; it's a classic CRUD implementation.
+The _`ProjectsDataAccess.ts`_ implements the data access logic for projects; it's a classic CRUD implementation. It also implements [Data Transfer Object (DTO)](https://martinfowler.com/eaaCatalog/dataTransferObject.html) TypeScript types [inferred from Zod schemas](https://github.com/colinhacks/zod#type-inference). DTO is a pattern to pass data through processes. In an App Router app, we pass data between the server and the client, and between JavaScript functions.
 
-It also implements [Data Transfer Object (DTO)](https://martinfowler.com/eaaCatalog/dataTransferObject.html) TypeScript types [inferred from Zod schemas](https://github.com/colinhacks/zod#type-inference).
-
-Naming the file _`ProjectDataAccess.ts`_ is not a recommendation either; you can use a different name. Besides, a single file works well if we don't have a lot of data access logic. Having more than one file would require changing this naming.
+Naming the file _`ProjectsDataAccess.ts`_ is not a recommendation either; you can use a different name. Besides, a single file works well if we don't have a lot of data access logic. Having more than one file would require changing this naming.
 
 #### _`tasks`_ business feature module
 
 The following is the folder structure of the _`src/features/app/tasks/`_ business feature module:
 
 ```shell
-app/tasks/data-access/TaskDataAccess.ts
+app/tasks/data-access/TaskOrderBy.ts
+app/tasks/data-access/TasksDataAccess.ts
+app/tasks/data-access/TaskStatus.ts
 
-app/tasks/domain/TaskDomain.ts
+app/tasks/domain/TasksDomain.ts
 
-app/tasks/presentation/TaskForm.tsx
-app/tasks/presentation/TaskList.tsx
-app/tasks/presentation/TaskListItem.tsx
+app/tasks/ui/TaskForm.tsx
+app/tasks/ui/TaskList.tsx
+app/tasks/ui/TaskListItem.tsx
 ```
 
-Not all presentation files are listed above; you can check them here (a link will be added soon).
+Not all UI files are listed above; you can check them here (a link will be added soon).
 
-This module is implemented in the same way as the _`projects`_ business feature module we just saw above, i.e., _`TaskDomain.ts`_ implements data validation to create and update tasks using [zod](https://zod.dev/), and _`TaskDataAccess.ts`_ is a classic CRUD implementation and also implements DTOs.
+This module is implemented in the same way as the _`projects`_ business feature module we just saw above, i.e., _`TasksDomain.ts`_ implements data validation to create and update tasks using [zod](https://zod.dev/), and _`TasksDataAccess.ts`_ is a classic CRUD implementation and also implements DTOs.
 
 #### _`today`_ business feature module
 
 The following is the folder structure of the _`src/features/app/today/`_ business feature module:
 
 ```shell
-app/today/presentation/TodayPageHeader.tsx
+app/today/ui/TodayPageHeader.tsx
 ```
 
 #### _`settings/account`_ business feature module
@@ -716,8 +742,8 @@ app/today/presentation/TodayPageHeader.tsx
 The following is the folder structure of the _`src/features/app/settings/`_ business feature module:
 
 ```shell
-app/settings/account/presentation/AccountSettings.tsx
-app/settings/presentation/SettingsMenu.tsx
+app/settings/account/ui/AccountSettings.tsx
+app/settings/ui/SettingsMenu.tsx
 ```
 
 #### _`users`_ business feature module
@@ -726,7 +752,7 @@ The following is the folder structure of the _`src/features/app/users/`_ busines
 
 ```shell
 app/users/data-access/UserDataAccess.tsx
-app/users/presentation/UpdateUserTimeZone.tsx
+app/users/ui/UpdateUserTimeZone.tsx
 ```
 
 ### Conclusion
