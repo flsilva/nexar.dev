@@ -98,7 +98,7 @@ However, it's no silver bullet. If you think it might fit your use case, try it;
 
 Designing an application architecture solely in our minds is a recipe for disaster. We need to design it as we build apps. That's the only way to ensure they are good. And so I did.
 
-[OpenTask](https://opentask.app) is a free and [open-source](https://github.com/flsilva/opentask) task management app created as part of a Next.js App Router case study (a link will be added soon), and it currently implements Nexar beta as the codebase in the feb-2024 branch (a link will be added soon).
+[OpenTask](https://opentask.app) is a free, [open-source](https://github.com/flsilva/opentask), fully functional, and responsive task management app created as part of a [Next.js App Router case study](https://flsilva.com/blog/opentask-nextjs-app-router-case-study/), and it currently implements Nexar beta as the codebase in the [feb-2024 branch](https://github.com/flsilva/opentask/tree/feb-2024).
 
 Having an open-source application as a reference implementation of Nexar is fantastic. Anyone can investigate its codebase to see how a fully functional and responsive application implements Nexar in its tiny details.
 
@@ -189,7 +189,7 @@ There are other use cases, like revisiting a [discarded tab](https://developer.c
 
 Implementing a regular route to support the use cases above requires having two folders for the same feature and, again, choosing one of them for our reusable components. That's not intuitive.
 
-That's why we should decouple the routing code from the business feature code. That allows for a clean, intuitive, and meaningful structure for our business feature modules that reflects business concepts while allowing us to design and build the public entry points of our applications leveraging the framework's conventions.
+That's why we should decouple the **routing** code from the **business feature** code. That allows for a clean, intuitive, and meaningful structure for our business feature modules that reflects business concepts while allowing us to design and build the public entry points of our applications leveraging the framework's conventions.
 
 We do that by having a separate _`src/features`_ folder to build our **business feature** modules.
 
@@ -614,7 +614,7 @@ ui/pwa/
 ui/skeleton/
 ```
 
-To keep it brief, I've omitted UI files. You can see them here (a link will be added soon).
+To keep it brief, I've omitted UI files. You can see them [here](https://github.com/flsilva/opentask/tree/feb-2024/src/features/shared/ui).
 
 #### _`marketing`_ business feature module
 
@@ -695,7 +695,7 @@ app/projects/ui/ProjectList.tsx
 app/projects/ui/ProjectListItem.tsx
 ```
 
-Not all UI files are listed above; you can check them here (a link will be added soon).
+Not all UI files are listed above; you can check them [here](https://github.com/flsilva/opentask/tree/feb-2024/src/features/app/projects).
 
 In OpenTask, the _`ProjectsDomain.ts`_ implements business logic for the _project_ business concept in a task management application.
 
@@ -725,7 +725,7 @@ app/tasks/ui/TaskList.tsx
 app/tasks/ui/TaskListItem.tsx
 ```
 
-Not all UI files are listed above; you can check them here (a link will be added soon).
+Not all UI files are listed above; you can check them [here](https://github.com/flsilva/opentask/tree/feb-2024/src/features/app/tasks).
 
 This module is implemented in the same way as the _`projects`_ business feature module we just saw above, i.e., _`TasksDomain.ts`_ implements data validation to create and update tasks using [zod](https://zod.dev/), and _`TasksDataAccess.ts`_ is a classic CRUD implementation and also implements DTOs.
 
