@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { GitHubLogoIcon } from "./GitHubLogoIcon";
-import { GaNextScriptNavigation } from "./ga";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -64,7 +64,7 @@ export default function RootLayout({
             <GitHubLogoIcon className="fill-white dark:fill-black" />
           </Link>
         </footer>
-        <GaNextScriptNavigation gaId="G-QJRLJTTYZ9" />
+        <GoogleAnalytics gaId="G-QJRLJTTYZ9" />
       </body>
     </html>
   );
